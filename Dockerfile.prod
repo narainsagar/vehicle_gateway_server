@@ -1,0 +1,33 @@
+# Stage 1: Build the application
+FROM node:16.14-alpine as builder
+
+ENV SERVER_ENV build
+
+USER node
+WORKDIR /home/node
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY --chown=node:node . .
+RUN npm run build
+RUN npm prune --production
+
+# Stage 2: Production
+FROM node:16.14-alpine
+
+ENV SERVER_ENV production
+
+WORKDIR /home/node
+
+COPY --from=builder /home/node/package*.json ./
+COPY --from=builder /home/node/node_modules/ ./node_modules/
+COPY --from=builder /home/node/dist/ ./dist/
+
+# EXPOSE 3000
+
+# CMD ["node", "dist/main"]
+
+## For `production`, You need to also change `docker-compose.yml` a bit.
+## (for example, replace the command `npm run start` with `npm run start:dev` or `node dist/main`)

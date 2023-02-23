@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  redis:
+    container_name: "server-redis"
+    volumes:
+      - redis_data:/data
+    image: redis
+  mysql:
+    container_name: "server-mysql"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "password"
+      MYSQL_DATABASE: "test_db"
+    ports:
+      - "3306:3306"
+  server:
+    # container_name: "server-app"
+    image: "server-app"
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bash -c 'while !</dev/tcp/mysql/3306; do echo "waiting for mysql to be ready...."; sleep 5; done; npm run start'
+    ports:
+      - "3000:3000"
+      # - "127.0.0.1:4000:4000"
+    env_file:
+      - .env.docker
+    depends_on:
+      - mysql
+      - redis
+
+volumes:
+  redis_data:
+  mysql_data:
