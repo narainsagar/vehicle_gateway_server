@@ -3,7 +3,7 @@
 > The project is created using [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
 
-> You may check [INFO.md](./INFO.md) file for more info and details.
+> You may check [INFO.md](./INFO.md) file for more info about the implementation and approach and more.
 
 
 > For TCP module you may check [./tcp/README.md](./tcp/README.md) file.
@@ -57,9 +57,11 @@ Alternatively, you can also run the project by building docker image and using `
 
 ## Docker commands
 
+> **NOTE:** The TCP server runs inside the this main application container, where we have REST HTTP API server + TCP server runs together via `docker-compose` file:
+
+- `docker-compose up`
 - `docker-compose down`
 - `docker-compose build`
-- `docker-compose up`
 
 - restart via docker-compose: `docker-compose down && docker-compose build && docker-compose up`
 

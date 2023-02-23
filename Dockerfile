@@ -14,7 +14,7 @@ RUN npm install --force
 COPY . .
 
 # Expose port SERVER_PORT=3000 for the server application and TCP_PORT=4000 for tcp server
-EXPOSE 3000
+EXPOSE 3000 4000
 
 # Start the application
-# CMD ["npm", "run", "start"]
+# CMD node tcp/server.js

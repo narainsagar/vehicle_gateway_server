@@ -1,11 +1,6 @@
 version: '3.8'
 
 services:
-  redis:
-    container_name: "server-redis"
-    volumes:
-      - redis_data:/data
-    image: redis
   mysql:
     container_name: "server-mysql"
     volumes:
@@ -20,18 +15,61 @@ services:
   server:
     # container_name: "server-app"
     image: "server-app"
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    build: .
     command: bash -c 'while !</dev/tcp/mysql/3306; do echo "waiting for mysql to be ready...."; sleep 5; done; npm run start'
     ports:
       - "3000:3000"
-      # - "127.0.0.1:4000:4000"
     env_file:
       - .env.docker
     depends_on:
       - mysql
+  redis:
+    image: redis
+    container_name: redis
+    command: sh -c "redis-server --appendonly yes && redis-cli flushall"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  load-balancer:
+    image: haproxy
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    depends_on:
+      - server1
+      - server2
+
+  server1:
+    build: .
+    container_name: server1
+    command: sh -c "node ./tcp/server.js"
+    environment:
+      APP_ID: 1000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TCP_HOST: '0.0.0.0'
+      TCP_PORT: 4000
+      SERVER_HOST: 'server'
+    depends_on:
       - redis
+      - server
+
+  server2:
+    build: .
+    container_name: server2
+    command: sh -c "node ./tcp/server.js"
+    environment:
+      APP_ID: 1001
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TCP_HOST: '0.0.0.0'
+      TCP_PORT: 4000
+      SERVER_HOST: 'server'
+    depends_on:
+      - redis
+      - server
 
 volumes:
   redis_data:

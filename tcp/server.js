@@ -13,7 +13,7 @@ const TCP_PORT = +process.env.TCP_PORT || 4000;
 const TCP_HOST = process.env.TCP_HOST || "localhost"; // 127.0.0.1
 
 // Node REST API
-const SERVER_HOST = process.env.SERVER_HOST || "127.0.0.1";
+const SERVER_HOST = process.env.SERVER_HOST || "server";
 const SERVER_PORT = +process.env.SERVER_PORT || 3000;
 
 const SERVER_TCP_HANDLER_ENDPOINT_URL = `http://${SERVER_HOST}:${SERVER_PORT}/vehicles/tcpHandleMessage`;
