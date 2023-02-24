@@ -12,17 +12,6 @@ services:
       MYSQL_DATABASE: "test_db"
     ports:
       - "3306:3306"
-  server:
-    # container_name: "server-app"
-    image: "server-app"
-    build: .
-    command: bash -c 'while !</dev/tcp/mysql/3306; do echo "waiting for mysql to be ready...."; sleep 5; done; npm run start'
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env.docker
-    depends_on:
-      - mysql
   redis:
     image: redis
     container_name: redis
@@ -31,6 +20,21 @@ services:
       - redis_data:/data
     restart: always
 
+  api-server:
+    # container_name: "api-server"
+    image: "api-server"
+    build: .
+    command: bash -c 'while !</dev/tcp/mysql/3306; do echo "waiting for mysql to be ready...."; sleep 5; done; npm run start:prod'
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.docker
+    environment:
+      REST_API_SERVER_ENV: "production"
+    depends_on:
+      - mysql
+      - redis
+
   load-balancer:
     image: haproxy
     ports:
@@ -38,38 +42,40 @@ services:
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
     depends_on:
-      - server1
-      - server2
+      - tcp-server1
+      - tcp-server2
 
-  server1:
+  tcp-server1:
     build: .
-    container_name: server1
-    command: sh -c "node ./tcp/server.js"
+    container_name: tcp-server1
+    # command: sh -c "node ./tcp/server.js"
+    command: bash -c 'while ! curl -sSf http://api-server:3000/health > /dev/null; do echo "Waiting for API server to be ready...."; sleep 10; done; node ./tcp-server.js'
     environment:
-      APP_ID: 1000
+      SERVER_ID: 1000
       REDIS_HOST: redis
       REDIS_PORT: 6379
       TCP_HOST: '0.0.0.0'
       TCP_PORT: 4000
-      SERVER_HOST: 'server'
+      REST_API_SERVER_HOST: 'api-server'
     depends_on:
       - redis
-      - server
+      - api-server
 
-  server2:
+  tcp-server2:
     build: .
-    container_name: server2
-    command: sh -c "node ./tcp/server.js"
+    container_name: tcp-server2
+    # command: sh -c "node ./tcp/server.js"
+    command: bash -c 'while ! curl -sSf http://api-server:3000/health > /dev/null; do echo "Waiting for API server to be ready...."; sleep 10; done; node ./tcp-server.js'
     environment:
-      APP_ID: 1001
+      SERVER_ID: 1001
       REDIS_HOST: redis
       REDIS_PORT: 6379
       TCP_HOST: '0.0.0.0'
       TCP_PORT: 4000
-      SERVER_HOST: 'server'
+      REST_API_SERVER_HOST: 'api-server'
     depends_on:
       - redis
-      - server
+      - api-server
 
 volumes:
   redis_data:

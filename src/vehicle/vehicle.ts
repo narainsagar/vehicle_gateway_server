@@ -3,7 +3,6 @@ import * as uuid from "uuid";
 export class Vehicle {
   private id: string; // TODO: FIX
   private online = false;
-  private webhooks: string[] = [];
 
   deviceId: string;
   latitude = 0;

@@ -1,8 +1,13 @@
 import { Body, Controller, Get, Param, Post, Res } from "@nestjs/common";
 import { ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
 import axios from "axios";
+import Redis from "ioredis";
 import { VehicleTackingService } from "src/vehicle/vehicle-tracking.service";
-import { VehicleFrequencyDto, VehicleStatusDto } from "src/vehicle/vehicle.dto";
+import {
+  VehicleCommandRequestDto,
+  VehicleFrequencyDto,
+  VehicleStatusDto,
+} from "src/vehicle/vehicle.dto";
 import {
   VehicleWebhookStatusUpdateBatteryDto,
   VehicleWebhookStatusUpdateDebugBlobDto,
@@ -12,10 +17,63 @@ import {
   VehicleWebhookStatusUpdateRunningStatusDto,
 } from "./status-update.dto";
 
+enum commands {
+  // commands
+  turnOn = "turnOn",
+  turnOff = "turnOff",
+  run = "run",
+  rest = "rest",
+  disconnect = "disconnect",
+  
+  status = "status",
+
+  login = "login",
+  connect = "connect",
+  heartbeat = "heartbeat",
+  updateFrequency = "updateFrequency",
+  error = "error",
+};
+
+const REDIS_HOST = process.env.REDIS_HOST || "localhost";
+const REDIS_PORT = +process.env.REDIS_PORT || 6379;
+const REDIS_PUBSUB_CHANNEL =
+  process.env.REDIS_PUBSUB_CHANNEL || "VehicleServers";
+
+const redisPublisher = new Redis(REDIS_PORT, REDIS_HOST);
+
 @ApiTags("Service API")
 @Controller("")
 export class ServiceApiController {
   constructor(private vehicleTrackingService: VehicleTackingService) {}
+
+  // 3. To send a command to the vehicle.
+  @Post(":deviceId/command") // YES
+  @ApiOperation({ summary: "Give a command to vehicle" })
+  @ApiBody({ type: VehicleCommandRequestDto })
+  async commandVehicle(
+    @Param("deviceId") deviceId: string,
+    @Body() body: VehicleCommandRequestDto
+  ) {
+    try {
+      const { message } = body;
+      // const { message, clientId, serverId } = JSON.parse(jsonString);
+      // Forward the message to a servers (subscribed and listening to redis channel)
+      redisPublisher.publish(
+        REDIS_PUBSUB_CHANNEL,
+        JSON.stringify({
+          type: "command",
+          message: message,
+          clientId: deviceId,
+        })
+      );
+      return {
+        success: true,
+        message: `SUCCESS`,
+      };
+    } catch (err) {
+      return { error: true, message: `Something went wrong.`, errorInfo: err };
+    }
+  }
 
   // 1. To fetch information about the vehicle: if it’s connected or not, and, if it’s connected, current location, battery charge and running status.
   @Get(":deviceId/fetch-info")

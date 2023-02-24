@@ -13,8 +13,8 @@ RUN npm install --force
 # Copy the rest of the application to the container
 COPY . .
 
-# Expose port SERVER_PORT=3000 for the server application and TCP_PORT=4000 for tcp server
+# Expose port REST_API_SERVER_PORT=3000 for the server application and TCP_PORT=4000 for tcp server
 EXPOSE 3000 4000
 
-# Start the application
-# CMD node tcp/server.js
+# Start the application (check in `docker-compose.yml` file)
+# CMD ['npm', 'run', 'start']

@@ -29,22 +29,23 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  const SERVER_ENV = configService.get("SERVER_ENV");
-  const SERVER_PORT: number = configService.get("SERVER_PORT");
-  // const SERVER_HOST: string = configService.get("SERVER_HOST");
+  const REST_API_SERVER_ENV = configService.get("REST_API_SERVER_ENV");
+  const REST_API_SERVER_PORT: number = configService.get("REST_API_SERVER_PORT");
+  // const REST_API_SERVER_HOST: string = configService.get("REST_API_SERVER_HOST");
 
-  Logger.log(`SERVER_ENV: ${SERVER_ENV}`, "Main");
+  Logger.log(`REST_API_SERVER_ENV: ${REST_API_SERVER_ENV}`, "Main");
 
   // app.use(express.json());
   // app.use(bodyParser.json({ limit: '500mb' }));
   // app.enableCors();
 
-  if (SERVER_ENV !== "production") {
+  const SWAGGER_API_ACTIVATE = configService.get('SWAGGER_API_ACTIVATE') || true;
+  if (SWAGGER_API_ACTIVATE) {
     createSwagger(app as NestExpressApplication);
     Logger.log(`Create Swagger API Document`, "Main");
   }
 
-  await app.listen(SERVER_PORT, async () => {
+  await app.listen(REST_API_SERVER_PORT, async () => {
     Logger.log(`Application is running on: ${await app.getUrl()}`, "Main")
   });
 }
@@ -80,7 +81,7 @@ function createSwagger(app: NestExpressApplication) {
   SwaggerModule.setup(prefix, app, document);
 
   Logger.log(
-    `Swagger API is available on ${process.env.SERVER_HOST}:${process.env.SERVER_PORT}${prefix}`,
+    `Swagger API is available on ${process.env.REST_API_SERVER_HOST}:${process.env.REST_API_SERVER_PORT}${prefix}`,
     "Main"
   );
 }

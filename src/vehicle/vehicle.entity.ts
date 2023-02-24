@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { EventEmitter } from 'events';
 
 @Entity()
 export class VehicleEntity {
@@ -12,8 +11,8 @@ export class VehicleEntity {
   @Column({ default: true })
   online: boolean;
 
-  @Column('simple-array', { default: null })
-  webhooks: string[];
+  // @Column('simple-array', { default: null })
+  // webhooks: string[];
 
   @Column('double precision', { default: 0 })
   latitude: number;
@@ -54,7 +53,6 @@ export class VehicleEntity {
     // this.battery = 100;
     // this.running = false;
     // this.updateFrequency = 0;
-    // this.webhooks = [];
   }
 
   getLatitude() {

@@ -33,11 +33,11 @@ export class VehicleTackingService {
     private vehicleService: VehicleService
   ) {}
 
-  public async messageHandlerForClient(data: string, vehicleId: string): Promise<string> {
+  public async messageHandlerForClient(msg: string, vehicleId: string): Promise<string> {
     try {
-      const message = data.toString().trim();
+      const message = msg.toString().trim();
 
-      console.log(`**Received data from client: ${message}`);
+      console.log(`**Received message for device ${vehicleId} from tcp server: ${message}`);
 
       if (message === MESSAGE_TEMPLATES.PING) {
         const success = this.handleMessage(
@@ -155,19 +155,20 @@ export class VehicleTackingService {
           }
         }
       } else if (message) { // not empty
+        console.log('**** Could not process received message: ', message);
         // throw new Error(`Invalid message ${message}`);
-        return MESSAGE_TEMPLATES.MESSAGE_RECEIVED;
+        return MESSAGE_TEMPLATES.INVALID_MESSAGE;
       }
     } catch (err) {
       console.log("errr:", err);
     }
 
+    // send empty string when some failure....
     return '';
   }
 
   // TODO: Confirm `IMessage` and `message` implementation here.
   handleMessage(cmd: string, message: IMessage): boolean {
-    console.log("***** cmd: ", cmd, " message:", message);
     let response;
     if (cmd === "login") {
       response = this.handleLoginMessage(message);

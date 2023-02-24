@@ -29,20 +29,16 @@ export class VehicleRequestDto {
   // status: string;
 
   @ApiProperty({ type: Boolean, required: false })
-  @IsBoolean({
-    always: true,
-  })
-  running: boolean;
+  @IsBoolean({ always: true })
+  running: boolean = false;
 
   @ApiProperty({ type: Boolean, required: false })
-  @IsBoolean({
-    always: true,
-  })
-  online: boolean;
+  @IsBoolean()
+  online: boolean = false;
 
   @ApiProperty({ type: Number, required: false })
   @IsNumber({ allowNaN: false, allowInfinity: false }, { always: true })
-  updateFrequency: number;
+  updateFrequency: number = 0;
 }
 
 export class VehicleResponseDto extends PickType(VehicleRequestDto, [
@@ -71,22 +67,9 @@ export class VehicleStatusDto {
   running: boolean;
 }
 
-export class VehicleWebhookDto {
+export class VehicleCommandRequestDto {
   @ApiProperty({ type: String })
-  webhookUrl: string;
-}
-
-export class VehicleWebhookEventDto {
-  @ApiProperty({ type: String })
-  event: string;
-}
-
-export class VehicleWebhookOnlineStatusDto {
-  @ApiProperty({ type: String })
-  webhookUrl: string;
-
-  @ApiProperty({ type: Number })
-  seconds: number;
+  message: string;
 }
 
 export class VehicleDto {
@@ -118,11 +101,12 @@ export class VehicleDto {
   // status: string;
 }
 
-
-
 export class TcpHandleRequestDto {
   @ApiProperty({ type: String })
   message: string;
+
+  @ApiProperty({ type: String })
+  type: string;
 }
 
 export class TcpHandleResponseDto {

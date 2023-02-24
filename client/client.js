@@ -2,29 +2,7 @@ const net = require("net");
 const readline = require("readline");
 const uuid = require("uuid");
 
-const templates = {
-  // message templates
-  PATTERN_REPORT: `REPORT. I'M HERE (.+) (.+), (.+) AND CHARGED AT (.+)%.`,
-  PATTERN_HELLO: `HELLO, I'M (.+)!`,
-  PATTERN_HEY_YOU: `HEY YOU, (.+)!`,
-  PATTERN_FINE: `FINE. I'M HERE (.+) (.+), (.+) AND CHARGED AT (.+)%.`,
-  PATTERN_KEEP_ME_POSTED: `KEEP ME POSTED EVERY (.+) SECONDS.`,
-  PATTERN_WTF: `WTF! (.+)\n(.+)`,
-
-  // static messages
-  LOGIN_REPLY: `HI, NICE TO MEET YOU!`,
-  INTERVAL_REPLY: `I CAN'T, SORRY.`,
-  STATUS_REQUEST: `HOW'S IT GOING?`,
-  BLOB_REPLY: `DAAAMN! ISSUE REPORTED ON JIRA`,
-  SESSION_END_REQUEST: `GOTTA GO.`,
-  SESSION_END_REPLY: `SEE YA!`,
-
-  DONE: `DONE!`,
-  STATUS_REPLY: `SURE, I WILL!`,
-  PING: "PING.",
-  PONG: "PONG.",
-  THANKS: "OK, THANKS!",
-};
+const templates = require('./messages.enum');
 
 function extractVariables(template, str) {
   const data = new RegExp(template).exec(str);
@@ -69,13 +47,28 @@ const clientIdentifier = uuid.v4();
 const client = new net.Socket();
 
 client.connect(TCP_PORT, TCP_HOST, () => {
-  console.log(`Connected to server on port: ${TCP_PORT}`);
+  console.log(">>>>>>>>> CLIENT ID: ", clientIdentifier);
+  console.log(`---> Client Connected to server on port: ${TCP_PORT}`);
 
   // Schedule the "ping" message to be sent every 60 seconds
   let pingIntervalId = 0;
   let updateIntervalId = 0;
   let updateInterval = 0; // keep me posted interval
 
+  function writeDataToServer(dataJson) {
+    /* --> dataJson format: 
+      {
+        type: "message",
+        message: templates.PING,
+        serverId: serverIdentifier,
+        clientId: clientIdentifier,
+      } 
+    */
+    console.log(`>>> Client sending data to server:`, dataJson);
+    client.write(JSON.stringify(dataJson));
+  }
+
+  // TODO: check ~ cleanup required!!!
   rl.on("line", (input) => {
     // Send the message and clientId to the server
     let message = "";
@@ -108,48 +101,48 @@ client.connect(TCP_PORT, TCP_HOST, () => {
         return;
     }
 
-    client.write(
-      JSON.stringify({
-        message,
-        clientId: clientIdentifier,
-        serverId: serverIdentifier,
-      })
-    );
+    writeDataToServer({
+      type: 'message',
+      message: message,
+      clientId: clientIdentifier,
+      serverId: serverIdentifier, // TODO: remove??
+    });
   });
 
+  // Receive data from Server
   client.on("data", (data) => {
     const { type, message, serverId } = JSON.parse(data);
+    let reply = "";
     // "connected" with server having serverId
     if (type === "connected") {
+      // Received connection success!
       serverIdentifier = serverId;
 
-      console.log("Connected with serverId: ", serverId);
+      console.log("---> Connected with serverId: ", serverId);
       console.log(`---> Received data from Server: ${data.toString()}`);
 
-      // 1. Identify vehicle.
-      client.write(
-        JSON.stringify({
-          message: `HELLO, I'M ${clientIdentifier}!`,
-          // message: "FINE. I'M HERE 45.021561650 8.156484, RESTING AND CHARGED AT 42%.",
-          clientId: clientIdentifier,
-          serverId: serverIdentifier,
-        })
-      );
+      // 1. Send Identification message.
+      writeDataToServer({
+        type: 'message',
+        message: `HELLO, I'M ${clientIdentifier}!`,
+        // message: "FINE. I'M HERE 45.021561650 8.156484, RESTING AND CHARGED AT 42%.",
+        clientId: clientIdentifier,
+        serverId: serverIdentifier, // TODO: remove??
+      });
 
-      // PING interval 60 seconds
+      // Send PING interval updates every 60 seconds
       pingIntervalId = setInterval(() => {
-        client.write(
-          JSON.stringify({
-            type: "message",
-            message: templates.PING,
-            serverId: serverIdentifier,
-            clientId: clientIdentifier,
-          })
-        );
+        writeDataToServer({
+          type: "message", // TODO: change to 'updates'??
+          message: templates.PING,
+          serverId: serverIdentifier, // TODO: remove??
+          clientId: clientIdentifier,
+        });
       }, 60 * 1000); // 60 seconds
-    } else {
-      console.log(`---> Received message from server: ${message}`);
-      let reply = "";
+    } else if (type === "command") {
+      // Received command from server
+      console.log(`---> Received command from server: ${message}`);
+      // let reply = "";
       if (message.startsWith("KEEP ME POSTED EVERY ")) {
         // Extract the current update interval from the status message
         const match = extractVariables(
@@ -174,13 +167,12 @@ client.connect(TCP_PORT, TCP_HOST, () => {
                 "RUNNING",
                 "47",
               ];
-              client.write(
-                JSON.stringify({
-                  clientId: clientIdentifier,
-                  serverId: serverIdentifier,
-                  message: `REPORT. I'M HERE ${latitude} ${longitude}, ${status} AND CHARGED AT ${battery}%.`,
-                })
-              );
+              writeDataToServer({
+                type: 'message', // TODO: change to 'updates'??
+                message: `REPORT. I'M HERE ${latitude} ${longitude}, ${status} AND CHARGED AT ${battery}%.`,
+                clientId: clientIdentifier,
+                serverId: serverIdentifier, // TODO: remove??
+              });
             }, updateInterval * 1000);
           }
         }
@@ -191,7 +183,7 @@ client.connect(TCP_PORT, TCP_HOST, () => {
           // TODO: handle command -> (Where RUN turns the vehicle on and REST turns it off.)
           reply = handleCommand(cmd); // {{“RUN”|”REST”}}
         }
-      } else if (message === templates.SESSION_END_REQUEST) {
+      } else if (message === templates.SESSION_END_REQUEST) { // SEE YA!
         // TODO: handle command and close connection
         reply = templates.SESSION_END_REPLY;
       } else if (message === templates.STATUS_REQUEST) {
@@ -204,23 +196,34 @@ client.connect(TCP_PORT, TCP_HOST, () => {
         ];
         reply = `FINE. I'M HERE ${latitude} ${longitude}, ${status} AND CHARGED AT ${battery}%.`;
       } else {
-        // console.info('INVALID MESSAGE:', message);
+        console.log('---> Invalid command:', message);
       }
+    } else if (type === "message") {
+      // Received acknowledge messages from server
+      // FYI: DO NOT REPLY!!!
 
-      if (reply) {
-        console.log("---> SENDING REPLY TO SERVER:", reply);
-        client.write(
-          JSON.stringify({
-            serverId: serverIdentifier,
-            clientId: clientIdentifier,
-            message: reply,
-          })
-        );
-      }
+      // PONG.
+      // HI, NICE TO MEET YOU!
+      // OK, THANKS!
+      // SEE YA!
 
-      if (message === templates.SESSION_END_REPLY) { // handle close
-        client.destroy();
-      }
+      console.info(`** Received acknowledge message from Server: `, data.toString());
+    }
+
+    // Only respond to type `command` and `updates` messages.
+    if (reply /*&& type === 'command'*/) {
+      console.log("---> SENDING REPLY TO SERVER:", reply);
+      writeDataToServer({
+        type: 'reply',
+        message: reply,
+        serverId: serverIdentifier, // TODO: remove??
+        clientId: clientIdentifier,
+      });
+    }
+
+    // Disconnect client when server wants to end session.
+    if (message === templates.SESSION_END_REQUEST) {
+      client.destroy(); // handle close
     }
   });
 

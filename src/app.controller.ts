@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from "@nestjs/common";
+import { Controller, Get, Post, Res } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Main")
@@ -12,6 +12,16 @@ export class AppController {
   })
   status() {
     return `Server is Up!!`;
+  }
+
+  @Get('/health')
+  @ApiOperation({ summary: "Check the Server Health" })
+  @ApiResponse({
+    status: 200,
+    description: "Success",
+  })
+  healthCheck(@Res() res) {
+    return res.send(200);
   }
   
 }

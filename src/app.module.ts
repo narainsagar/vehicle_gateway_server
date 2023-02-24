@@ -28,7 +28,7 @@ import { jsonMiddleware } from "./json.middleware";
           database: configService.get('TYPEORM_DATABASE'),
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           synchronize: configService.get('TYPEORM_SYNCHRONIZE'),
-          logging: configService.get('SERVER_ENV') === 'development',
+          logging: configService.get('REST_API_SERVER_ENV') === 'development',
           namingStrategy: new SnakeNamingStrategy(),
           legacySpatialSupport: false,
         } as TypeOrmModuleOptions),

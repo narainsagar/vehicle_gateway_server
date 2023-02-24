@@ -25,13 +25,21 @@ export class VehicleController {
   @ApiBody({ type: TcpHandleRequestDto })
   @ApiOkResponse({ type: TcpHandleResponseDto })
   async callTcpHandler(@Body() payload, @Res() res) {
-    console.log('payload:', payload);
-    const { message, clientId } = payload;
+    // console.log('payload:', payload);
+    const { type, message, clientId } = payload;
     try {
-      console.log('received message from client: ', message);
-      const reply = await this.vehicleTrackingService.messageHandlerForClient(message, clientId);
-      console.log('replying: ', reply);
-      return res.status(200).send({ success: true, message: reply });
+      if (type === 'command') {
+        console.log('Received command message from client: ', message);
+        // GOTTA GO.
+        const reply = await this.vehicleTrackingService.messageHandlerForClient(message, clientId);
+        return res.status(200).send({ success: true, message: reply });
+      } else if (type === 'message') {
+        console.log('Received message from client: ', message);
+        const reply = await this.vehicleTrackingService.messageHandlerForClient(message, clientId);
+        return res.status(200).send({ success: true, message: reply });
+      } else {
+        console.log('Invalid type:', type);
+      }
     } catch(err) {
       return res.status(200).send({
         error: true,

@@ -1,15 +1,20 @@
-# some testing folders
-dockertest/
-redis/
-docker/
-
-# Ignore dist + node_modules folder
+# Ignore client + dist + node_modules folder
+client/
 dist/
 node_modules/
+
+# some testing folders
+docker/
+dockertest/
+redis/
 
 # Ignore the git and cache folders
 .git
 .cache
+
+# Ignore tsconfig*.json + .eslintrc.js files
+# .eslintrc.js
+# tsconfig*.json
 
 # Ingore all markdown and class files
 *.md

@@ -7,7 +7,7 @@ const numCPUs = os.cpus().length;
 @Injectable()
 export class ClusterService {
   static clusterize(callback: Function): void {
-    if (cluster.isPrimary && process.env.SERVER_ENV !== "development") {
+    if (cluster.isPrimary && process.env.REST_API_SERVER_ENV !== "development") {
       console.log(`MASTER SERVER (${process.pid}) IS RUNNING `);
 
       for (let i = 0; i < numCPUs; i++) {
