@@ -6,7 +6,7 @@
 > You may check [INFO.md](./INFO.md) file for more info about the implementation and approach and more.
 
 
-> For TCP module you may check [./tcp/README.md](./tcp/README.md) file.
+> For **TCP Client** module you may check [./client/README.md](./client/README.md) file.
 
 
 ## Installation
@@ -15,7 +15,7 @@
 $ npm install
 ```
 
-> You might be need to provide your ENV variables in `.env` file (create one and provide your configuration, if you want to.)
+> You might be need to provide your ENV variables in `.env` file (provide your configurations, if you want to.)
 
 ```bash
 $ cp .env.sample .env
@@ -32,13 +32,13 @@ For this project to run, you need following services / tools to be installed on 
 > I have also added docker `docker-compose` files for you so you can quickly run them without installing on your actual machine. Checkout [**/docker**](./docker/) for it.
 
 
-> **Important:** Also, please make sure once the mysql is running.. you need to create a database `test_db` (please verify the name in your configuration or use `test_db` as the default one). This is required only for first time.
+> **Important:** Please make sure once the _mysql is running.._ you need to create a database called `test_db` (please verify the name in your configuration or use `test_db` as the default one). This is required only for first time.
 
 This is all you need. :)
 
 Once everything is installed, up and running, you can proceed to the next steps.
 
-## Running the app
+## Running the `REST-API server` app:
 
 > **Note:** To run the project locally, make sure the `redis` and `mysql` running on your machine (you can verify and validate the configuration in `.env` file)
 
@@ -53,7 +53,16 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-Alternatively, you can also run the project by building docker image and using `docker-compose`, check the next steps.
+## Running the `TCP server` module:
+
+```bash
+$ npm run start:tcp
+
+## Or, maybe run using `node`:
+$ node tcp-server.js
+```
+
+> Alternatively, you can also run the project by building docker image and using `docker-compose`, check the next steps.
 
 ## Docker commands
 
