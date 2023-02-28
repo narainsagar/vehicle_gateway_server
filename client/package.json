@@ -1,10 +1,9 @@
 {
-    "name": "tcp-server-client",
+    "name": "tcp-client",
     "version": "1.0.0",
-    "description": "TCP server and client example",
-    "main": "server.js",
+    "description": "TCP client example",
+    "main": "client.js",
     "scripts": {
-        "start": "node server.js",
         "client": "node client.js"
     },
     "dependencies": {

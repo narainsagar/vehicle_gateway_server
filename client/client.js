@@ -2,7 +2,18 @@ const net = require("net");
 const readline = require("readline");
 const uuid = require("uuid");
 
-const templates = require('./messages.enum');
+// Global Variables
+const templates = require('./messages-templates.enum');
+const TCP_PORT = +process.env.TCP_PORT || 4000;
+const TCP_HOST = process.env.TCP_HOST || "localhost";
+
+let serverIdentifier = "";
+
+// Generate a UUID for the client
+const clientIdentifier = uuid.v4();
+
+const client = new net.Socket();
+
 
 function extractVariables(template, str) {
   const data = new RegExp(template).exec(str);
@@ -36,16 +47,6 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-const TCP_PORT = +process.env.TCP_PORT || 4000;
-const TCP_HOST = process.env.TCP_HOST || "localhost";
-
-let serverIdentifier = "";
-
-// Generate a UUID for the client
-const clientIdentifier = uuid.v4();
-
-const client = new net.Socket();
-
 client.connect(TCP_PORT, TCP_HOST, () => {
   console.log(">>>>>>>>> CLIENT ID: ", clientIdentifier);
   console.log(`---> Client Connected to server on port: ${TCP_PORT}`);
@@ -73,11 +74,6 @@ client.connect(TCP_PORT, TCP_HOST, () => {
     // Send the message and clientId to the server
     let message = "";
     switch (input.toUpperCase()) {
-      case "LOGIN": // t2
-        // const id = process.env.CLIENT_IDENTIFIER
-        message = `HELLO, I'M ${clientIdentifier ?? "UNKNOWN"}!`;
-        break;
-
       case "ERROR":
         message = `WTF! 13\n72,101,108,108,111,44,32,119,111,114,108,100,33`;
         break;
@@ -86,15 +82,10 @@ client.connect(TCP_PORT, TCP_HOST, () => {
         message = `GOTTA GO.`;
         break;
 
-      case "REPORT":
-        message =
-          "REPORT. I'M HERE 45.021561650 8.156484, RESTING AND CHARGED AT 67%.";
-        break;
-
-      // just for testing (TODO: remove)
-      case "PING.":
-        message = `PING.`;
-        break;
+      // case "REPORT":
+      //   message =
+      //     "REPORT. I'M HERE 45.021561650 8.156484, RESTING AND CHARGED AT 67%.";
+      //   break;
 
       default:
         console.log(`Invalid input command: ${input}`);
