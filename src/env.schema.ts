@@ -18,7 +18,7 @@ export const environment = Joi.object({
 
   // Redis
   REDIS_HOST: Joi.string().default("localhost"),
-  REDIS_PORT: Joi.number(6379).default(),
+  REDIS_PORT: Joi.number().default(6379),
   REDIS_PUBSUB_CHANNEL: Joi.string().default("VehicleServers"),
   
   // TypeORM
