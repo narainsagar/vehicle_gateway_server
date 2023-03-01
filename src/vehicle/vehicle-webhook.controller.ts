@@ -15,8 +15,7 @@ export class VehicleWebhookController {
     @Res() res
   ) {
     try {
-      const webhookUrl = process.env.WEBHOOK_ENDPOINT_URL; // TODO: check!
-      const data = await axios.post(webhookUrl, update);
+      const data = await axios.post(process.env.WEBHOOK_ENDPOINT_URL, update);
       console.log("data**:", data);
       res.sendStatus(200);
     } catch (err) {
