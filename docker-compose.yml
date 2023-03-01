@@ -21,10 +21,10 @@ services:
     restart: always
 
   api-server:
-    # container_name: "api-server"
+    container_name: "api-server"
     image: "api-server"
     build: .
-    command: bash -c 'while !</dev/tcp/mysql/3306; do echo "waiting for mysql to be ready...."; sleep 5; done; npm run start:prod'
+    command: bash -c 'while !</dev/tcp/mysql/3306; do echo "waiting for mysql to be ready...."; sleep 5; done; npm run start'
     ports:
       - "3000:3000"
     env_file:

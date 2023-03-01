@@ -13,6 +13,9 @@ RUN npm install --force
 # Copy the rest of the application to the container
 COPY . .
 
+# Build the project
+RUN npm run build
+
 # Expose port REST_API_SERVER_PORT=3000 for the server application and TCP_PORT=4000 for tcp server
 EXPOSE 3000 4000
 
